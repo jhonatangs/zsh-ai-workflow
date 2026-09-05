@@ -114,6 +114,21 @@ aipr opencode deepseek-v4-pro
 
 Always review generated changes, commits, and pull requests before pushing or merging them.
 
+### 🚀 Usage: The Autopilot Mode
+
+The `USER_PROMPT` is now **optional**. If you omit the prompt string, the CLI will inject a default fallback command forcing the agent to read your `.ai/todo.md` and execute the next pending task automatically.
+
+**Manual Scope:**
+```bash
+ais antigravity claude-3-5-sonnet "Refactor the database connection script."
+```
+
+**Autopilot (Todo.md execution):**
+```bash
+ais antigravity gemini-1.5-pro
+```
+(The agent will autonomously find the next task in .ai/todo.md, execute it, and check it off).
+
 ## 🔄 Cross-Agent Handoff Commands
 
 ### `aipause` — Check-out

@@ -9,7 +9,6 @@ ai-init() {
         return 1
     fi
     echo "🚀 Initializing AI Setup..."
-    # Replace YOUR_USERNAME with your actual GitHub username
     git archive --remote=git@github.com:YOUR_USERNAME/ai-workflow-template.git main .ai | tar -x
     git archive --remote=git@github.com:YOUR_USERNAME/ai-workflow-template.git main .gitignore | tar -x
     echo "✅ AI Setup Template loaded successfully."
@@ -17,15 +16,21 @@ ai-init() {
 
 # 2. Parameterized Central Engine (Universal Router)
 _ai_execute() {
-    local prompt_file=$1
-    local harness=$2
-    local model=$3
+    local prompt_file="$1"
+    local harness="$2"
+    local model="$3"
+
+    # Shift past prompt_file, harness, and model to capture any optional free-text prompt
+    shift 3 2>/dev/null || shift $# 
+
+    # Optional user prompt with todo.md autopilot fallback
+    local USER_PROMPT="${1:-"Please read .ai/todo.md and strictly execute the next pending task. Autonomously update the checklist when finished."}"
 
     # Strict validation: Blocks execution if parameters are missing
     if [[ -z "$harness" || -z "$model" ]]; then
         echo "❌ Usage Error: You must explicitly declare the harness and the model."
-        echo "💡 Example Start: ais antigravity gemini-3.8-flash"
-        echo "💡 Example Resume: airesume opencode deepseek-v4-pro"
+        echo "💡 Example Start: ais antigravity gemini-3.8-flash \"Optional custom instruction\""
+        echo "💡 Example Autopilot: ais antigravity gemini-3.8-flash"
         return 1
     fi
 
@@ -34,48 +39,39 @@ _ai_execute() {
         return 1
     fi
 
-    echo "⚡ Dispatching | Harness: [$harness] | Model: [$model]"
+    echo "⚙️ Dispatching | Harness: [$harness] | Model: [$model]"
+
+    # Read the prompt template and dynamically substitute the {{USER_PROMPT}} placeholder
+    local prompt_content=$(< "$prompt_file")
+    prompt_content="${prompt_content//\{\{USER_PROMPT\}\}/$USER_PROMPT}"
 
     # Syntactic adapters: Grouping harnesses by their CLI behavior
-    # Add new cases here as you discover tools with different syntaxes
     case "$harness" in
-        # CLIs that accept the file as a flag (e.g., OpenCode, Roo Code, Cline)
         opencode|roo|roo-cline|cline|kilo-code)
-            "$harness" --model "$model" --prompt-file "$prompt_file"
+            "$harness" --model "$model" --prompt "$prompt_content"
             ;;
-            
-        # CLIs that natively manage Git diffs via a message flag
         aider)
-            aider --model "$model" --message-file "$prompt_file"
+            aider --model "$model" --message "$prompt_content"
             ;;
-            
-        # Heavy autonomous agents / Workspaces
         openhands|swe-agent|agentless|autocoderover)
-            python -m "$harness".run --task-file "$prompt_file" --model "$model"
+            python -m "$harness".run --task "$prompt_content" --model "$model"
             ;;
-            
-        # Anthropic/OpenAI native tools or modern generic CLIs
         claude-code|goose|claw|manus|vellum)
-            "$harness" --model "$model" -p "$(cat $prompt_file)"
+            "$harness" --model "$model" -p "$prompt_content"
             ;;
-            
-        # Direct integration with IDE CLIs
         cursor|windsurf|zed)
-            "$harness" --prompt "$(cat $prompt_file)" --model "$model"
+            "$harness" --prompt "$prompt_content" --model "$model"
             ;;
-            
-        # Universal Fallback: Reads the file via STDIN and passes the model flag
-        # (Standard for Antigravity, GitHub Copilot CLI, etc.)
         *)
-            cat "$prompt_file" | "$harness" --model "$model"
+            echo "$prompt_content" | "$harness" --model "$model"
             ;;
     esac
 }
 
 # 3. Strict Terminal Commands
-# Mandatory syntax: <command> <harness> <model>
-ais()      { _ai_execute ".ai/prompts/1-start.txt" "$1" "$2" }
-aif()      { _ai_execute ".ai/prompts/2-fix.txt" "$1" "$2" }
-aipr()     { _ai_execute ".ai/prompts/3-ship.txt" "$1" "$2" }
-aipause()  { _ai_execute ".ai/prompts/4-pause.txt" "$1" "$2" }
-airesume() { _ai_execute ".ai/prompts/5-resume.txt" "$1" "$2" }
+# Mandatory syntax: <command> <harness> <model> [optional user prompt]
+ais()      { _ai_execute ".ai/prompts/1-start.txt" "$@" }
+aif()      { _ai_execute ".ai/prompts/2-fix.txt" "$@" }
+aipr()     { _ai_execute ".ai/prompts/3-ship.txt" "$@" }
+aipause()  { _ai_execute ".ai/prompts/4-pause.txt" "$@" }
+airesume() { _ai_execute ".ai/prompts/5-resume.txt" "$@" }
