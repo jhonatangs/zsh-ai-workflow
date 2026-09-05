@@ -12,7 +12,7 @@ A parameterized CLI router for Zsh designed to orchestrate autonomous AI agents 
 
 1. Clone this repository into a hidden directory in your home folder:
    ```bash
-   git clone [https://github.com/YOUR_USERNAME/zsh-ai-workflow.git](https://github.com/YOUR_USERNAME/zsh-ai-workflow.git) ~/.zsh-ai-workflow
+   git clone [https://github.com/jhonatangs/zsh-ai-workflow.git](https://github.com/jhonatangs/zsh-ai-workflow.git) ~/.zsh-ai-workflow
    ```
 
 2. Source the plugin at the end of your `~/.zshrc` file:
