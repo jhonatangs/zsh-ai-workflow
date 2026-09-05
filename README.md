@@ -2,7 +2,7 @@
 
 A parameterized CLI router for Zsh designed to orchestrate autonomous AI agents directly from your terminal. 
 
-This plugin serves as the execution engine for the [AI-Assisted Development Template](https://github.com/YOUR_USERNAME/ai-workflow-template), enabling zero-hallucination workflows and seamless cross-agent handoffs using the File System as an API.
+This plugin serves as the execution engine for the [AI-Assisted Development Template](https://github.com/jhonatangs/ai-workflow-template), enabling zero-hallucination workflows and seamless cross-agent handoffs using the File System as an API.
 
 ## 🚀 Features
 
