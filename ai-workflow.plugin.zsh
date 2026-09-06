@@ -4,14 +4,124 @@
 
 # 1. Template Initializer
 ai-init() {
-    if [ -d ".ai" ]; then
+    if [[ -d ".ai" ]]; then
         echo "⚠️ The .ai directory already exists in this repository."
         return 1
     fi
-    echo "🚀 Initializing AI Setup..."
-    git archive --remote=git@github.com:YOUR_USERNAME/ai-workflow-template.git main .ai | tar -x
-    git archive --remote=git@github.com:YOUR_USERNAME/ai-workflow-template.git main .gitignore | tar -x
-    echo "✅ AI Setup Template loaded successfully."
+
+    local repo="git@github.com:jhonatangs/ai-workflow-template.git"
+
+    local files=(
+        ".ai"
+        ".gitignore"
+    )
+
+    local agents=()
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --agent)
+                if [[ -z "$2" ]]; then
+                    echo "❌ Missing value for --agent."
+                    echo ""
+                    echo "Usage:"
+                    echo "  ai-init"
+                    echo "  ai-init --agent cursor"
+                    echo "  ai-init --agent cursor --agent copilot"
+                    echo "  ai-init --all"
+                    return 1
+                fi
+
+                agents+=("$2")
+                shift 2
+                ;;
+
+            --all)
+                agents=("cursor" "windsurf" "agents" "generic" "copilot")
+                shift
+                ;;
+
+            --help|-h)
+                echo "AI Workflow Initializer"
+                echo ""
+                echo "Usage:"
+                echo "  ai-init"
+                echo "  ai-init --agent cursor"
+                echo "  ai-init --agent windsurf"
+                echo "  ai-init --agent agents"
+                echo "  ai-init --agent generic"
+                echo "  ai-init --agent copilot"
+                echo "  ai-init --agent cursor --agent copilot"
+                echo "  ai-init --all"
+                echo ""
+                echo "Available agents:"
+                echo "  cursor    -> .cursorrules"
+                echo "  windsurf  -> .windsurfrules"
+                echo "  agents    -> AGENTS.md"
+                echo "  generic   -> AI_INSTRUCTIONS.md"
+                echo "  copilot   -> .github/copilot-instructions.md"
+                echo "  all       -> all supported instruction files"
+                return 0
+                ;;
+
+            *)
+                echo "❌ Unknown option: $1"
+                echo "Use 'ai-init --help' for usage."
+                return 1
+                ;;
+        esac
+    done
+
+    # Translate agent names into template files
+    for agent in "${agents[@]}"; do
+        case "$agent" in
+            cursor)
+                files+=(".cursorrules")
+                ;;
+
+            windsurf)
+                files+=(".windsurfrules")
+                ;;
+
+            agents)
+                files+=("AGENTS.md")
+                ;;
+
+            generic)
+                files+=("AI_INSTRUCTIONS.md")
+                ;;
+
+            copilot)
+                files+=(".github/copilot-instructions.md")
+                ;;
+
+            *)
+                echo "❌ Unknown agent profile: $agent"
+                echo ""
+                echo "Supported agents:"
+                echo "  cursor"
+                echo "  windsurf"
+                echo "  agents"
+                echo "  generic"
+                echo "  copilot"
+                return 1
+                ;;
+        esac
+    done
+
+    echo "🚀 Initializing AI Workflow..."
+
+    git archive --remote="$repo" main "${files[@]}" | tar -x
+
+    echo "✅ AI Workflow initialized successfully."
+
+    if [[ ${#agents[@]} -gt 0 ]]; then
+        echo "📦 Installed AI adapters:"
+        printf '   - %s\n' "${agents[@]}"
+    else
+        echo "📦 Installed core workflow only."
+    fi
 }
 
 # 2. Parameterized Central Engine (Universal Router)

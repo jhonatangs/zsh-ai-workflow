@@ -129,6 +129,57 @@ ais antigravity gemini-1.5-pro
 ```
 (The agent will autonomously find the next task in .ai/todo.md, execute it, and check it off).
 
+## `ai-init` — Initialize the AI workflow
+
+Initializes the current repository with the core AI workflow files.
+
+By default:
+
+```bash
+ai-init
+```
+
+installs only:
+
+```text
+.ai/
+.gitignore
+```
+
+Agent-specific instruction files can be selected explicitly:
+
+```bash
+ai-init --agent cursor
+ai-init --agent windsurf
+ai-init --agent agents
+ai-init --agent generic
+ai-init --agent copilot
+```
+
+Multiple adapters can be selected:
+
+```bash
+ai-init --agent cursor --agent copilot
+```
+
+Or all supported adapters can be installed:
+
+```bash
+ai-init --all
+```
+
+Supported adapters:
+
+| Profile | File |
+|---|---|
+| `cursor` | `.cursorrules` |
+| `windsurf` | `.windsurfrules` |
+| `agents` | `AGENTS.md` |
+| `generic` | `AI_INSTRUCTIONS.md` |
+| `copilot` | `.github/copilot-instructions.md` |
+
+The `.ai/` directory remains the canonical workflow layer regardless of which adapters are installed.
+
 ## 🔄 Cross-Agent Handoff Commands
 
 ### `aipause` — Check-out
