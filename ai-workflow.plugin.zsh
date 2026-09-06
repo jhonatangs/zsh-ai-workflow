@@ -79,23 +79,18 @@ ai-init() {
             cursor)
                 files+=(".cursorrules")
                 ;;
-
             windsurf)
                 files+=(".windsurfrules")
                 ;;
-
             agents)
                 files+=("AGENTS.md")
                 ;;
-
             generic)
                 files+=("AI_INSTRUCTIONS.md")
                 ;;
-
             copilot)
                 files+=(".github/copilot-instructions.md")
                 ;;
-
             *)
                 echo "❌ Unknown agent profile: $agent"
                 echo ""
@@ -112,7 +107,39 @@ ai-init() {
 
     echo "🚀 Initializing AI Workflow..."
 
-    git archive --remote="$repo" main "${files[@]}" | tar -x
+    local temp_dir=$(mktemp -d)
+    
+    # Garantir limpeza do diretório temporário ao sair da função
+    trap 'rm -rf "$temp_dir"' EXIT INT TERM
+
+    # Shallow clone com sparse-checkout sem baixar o histórico completo
+    if ! git clone --depth 1 --filter=blob:none --sparse "$repo" "$temp_dir" &>/dev/null; then
+        echo "❌ Failed to connect to repository '$repo'."
+        return 1
+    fi
+
+    # Definir os arquivos/diretórios que devem ser extraídos
+    (
+        cd "$temp_dir" || exit 1
+        git sparse-checkout set "${files[@]}" &>/dev/null
+    )
+
+    # Copiar os arquivos solicitados para o diretório atual
+    local item
+    for item in "${files[@]}"; do
+        if [[ -e "$temp_dir/$item" ]]; then
+            if [[ -d "$temp_dir/$item" ]]; then
+                cp -r "$temp_dir/$item" ./
+            else
+                mkdir -p "$(dirname "$item")"
+                cp "$temp_dir/$item" "$item"
+            fi
+        fi
+    done
+
+    # Limpeza manual do diretório temporário
+    rm -rf "$temp_dir"
+    trap - EXIT INT TERM
 
     echo "✅ AI Workflow initialized successfully."
 
