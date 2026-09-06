@@ -93,13 +93,6 @@ ai-init() {
                 ;;
             *)
                 echo "❌ Unknown agent profile: $agent"
-                echo ""
-                echo "Supported agents:"
-                echo "  cursor"
-                echo "  windsurf"
-                echo "  agents"
-                echo "  generic"
-                echo "  copilot"
                 return 1
                 ;;
         esac
@@ -109,22 +102,14 @@ ai-init() {
 
     local temp_dir=$(mktemp -d)
     
-    # Garantir limpeza do diretório temporário ao sair da função
-    trap 'rm -rf "$temp_dir"' EXIT INT TERM
-
-    # Shallow clone com sparse-checkout sem baixar o histórico completo
-    if ! git clone --depth 1 --filter=blob:none --sparse "$repo" "$temp_dir" &>/dev/null; then
+    # Clone superficial da branch main sem carregar histórico antigo
+    if ! git clone --depth 1 -b main "$repo" "$temp_dir" &>/dev/null; then
         echo "❌ Failed to connect to repository '$repo'."
+        rm -rf "$temp_dir"
         return 1
     fi
 
-    # Definir os arquivos/diretórios que devem ser extraídos
-    (
-        cd "$temp_dir" || exit 1
-        git sparse-checkout set "${files[@]}" &>/dev/null
-    )
-
-    # Copiar os arquivos solicitados para o diretório atual
+    # Copiar os arquivos e pastas solicitados para o diretório de trabalho
     local item
     for item in "${files[@]}"; do
         if [[ -e "$temp_dir/$item" ]]; then
@@ -137,9 +122,14 @@ ai-init() {
         fi
     done
 
-    # Limpeza manual do diretório temporário
+    # Limpeza do diretório temporário
     rm -rf "$temp_dir"
-    trap - EXIT INT TERM
+
+    # Verificação de integridade
+    if [[ ! -d ".ai" ]]; then
+        echo "❌ Error: Failed to copy the .ai directory."
+        return 1
+    fi
 
     echo "✅ AI Workflow initialized successfully."
 
